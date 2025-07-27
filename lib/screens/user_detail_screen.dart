@@ -17,32 +17,35 @@ class _UserDetailScreenState extends State<UserDetailScreen>
   late AnimationController _controller;
   late Animation<Offset> _slideAnimation;
 
-  @override
-  void initState() {
-    super.initState();
+ @override
+void initState() {
+  super.initState();
+  print('Fetching posts for userId: ${widget.user.id}');
 
-    // Fetch posts
-    final postProvider =
-        Provider.of<PostProvider>(context, listen: false);
+
+  // Delay fetch call until after the first frame is rendered
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    final postProvider = Provider.of<PostProvider>(context, listen: false);
     postProvider.fetchPostsByUser(widget.user.id);
+  });
 
-    // Set up the slide animation
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 700),
-      vsync: this,
-    );
+  // Set up the slide animation
+  _controller = AnimationController(
+    duration: const Duration(milliseconds: 700),
+    vsync: this,
+  );
 
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(1.0, 0.0), // From right to left
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOut,
-    ));
+  _slideAnimation = Tween<Offset>(
+    begin: const Offset(1.0, 0.0), // From right to left
+    end: Offset.zero,
+  ).animate(CurvedAnimation(
+    parent: _controller,
+    curve: Curves.easeOut,
+  ));
 
-    // Start animation
-    _controller.forward();
-  }
+  _controller.forward();
+}
+
 
   @override
   void dispose() {

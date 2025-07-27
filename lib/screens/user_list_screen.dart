@@ -11,29 +11,15 @@ class UserListScreen extends StatefulWidget {
   State<UserListScreen> createState() => _UserListScreenState();
 }
 
-class _UserListScreenState extends State<UserListScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _fadeAnimation;
-
+class _UserListScreenState extends State<UserListScreen> {
   @override
   void initState() {
     super.initState();
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-    userProvider.fetchUsers();
 
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
-    );
-    _fadeAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
-    _controller.forward();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      userProvider.fetchUsers();
+    });
   }
 
   void _navigateToBookmarks(BuildContext context) {
@@ -77,26 +63,18 @@ class _UserListScreenState extends State<UserListScreen>
             return const Center(child: CircularProgressIndicator());
           }
 
-          return FadeTransition(
-            opacity: _fadeAnimation,
+          return RefreshIndicator(
+            onRefresh: () => provider.fetchUsers(),
             child: ListView.separated(
               padding: const EdgeInsets.all(16),
               itemCount: provider.users.length,
               separatorBuilder: (_, __) => const SizedBox(height: 12),
               itemBuilder: (_, index) {
                 final user = provider.users[index];
-                return AnimatedBuilder(
-                  animation: _fadeAnimation,
-                  builder: (_, child) {
-                    final delay = index * 0.05;
-                    return Transform.translate(
-                      offset: Offset(0, 10 * (1 - _fadeAnimation.value)),
-                      child: Opacity(
-                        opacity: _fadeAnimation.value,
-                        child: child,
-                      ),
-                    );
-                  },
+
+                return AnimatedOpacity(
+                  opacity: 1.0,
+                  duration: Duration(milliseconds: 300 + (index * 50)),
                   child: Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
